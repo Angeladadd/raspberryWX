@@ -40,7 +40,7 @@ class music:
 			elif arg == u'L':
 				res = ''
 				for i in range(0,len(self.playlist)):
-					if i == self.playing_pointer-1:
+					if i == self.playing_pointer:
 						res += "* "
 					res = res +str(i)+' '+ self.playlist[i]['name'] + '\n'
 				res += u'Pl <order> to play'	
@@ -132,15 +132,12 @@ class music:
 			if self.con.acquire():
 				if self.playing_pointer != -1:
 					song = self.playlist[self.playing_pointer]
-					self.playing_pointer += 1
-					self.playing_pointer %= len(self.playlist)
 					mp3_url = 'http://music.163.com/song/media/outer/url?id='+str(song["id"])
 					try:
 						subprocess.Popen(["pkill","mplayer"])
 						time.sleep(1)
-						subprocess.Popen("mplayer " + mp3_url, shell=True, stdout=subprocess.PIPE)
+						subprocess.Popen(["mplayer", mp3_url])
 						self.con.notifyAll()
-						# print song['duration']
 						self.con.wait(int(song['duration'])/1000)
 					except:
 						pass
