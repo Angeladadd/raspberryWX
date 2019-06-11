@@ -13,7 +13,7 @@ class music:
 		self.netease = api.NetEase()
 		self.help_msg = \
 		 u"H: 帮助信息\n" \
-         u"S: search <name>\n" \
+         u"S: 搜索歌曲 格式：S 搜索内容\n" \
          u"L: 播放列表\n" \
          u"C: 清空播放列表\n" \
          u"N: 下一曲\n" \
@@ -38,20 +38,21 @@ class music:
 				self.playing_pointer = -1
 				res = u'播放列表已清空'
 			elif arg == u'L':
-				res = ''
-				for i in range(0,len(self.playlist)):
-					if i == self.playing_pointer:
-						res += "* "
-					res = res +str(i)+' '+ self.playlist[i]['name'] + '\n'
-				res += u'Pl <order> to play'	
-			elif arg == u'R':
-				res = self.playing
+				res = u"播放歌曲：PL 序号"
+				if len(self.playlist) == 0:
+					res += u"播放列表为空"
+					for i in range(0,len(self.playlist)):
+						if i == self.playing_pointer:
+							res += u"正在播放： "
+						res = res +str(i)+' '+ self.playlist[i]['name'] + '\n'
 			elif arg == u'P':
 				if self.con.acquire():
 					self.con.notifyAll()
 					self.con.release()
 				self.playing_pointer = -1
-				res = u'Pause'
+				res = u"暂停播放"
+			elif arg == u'R':
+				res = self.playing
 			elif arg ==u'N':
 				if len(self.playlist) > 0:
 					if self.con.acquire():
@@ -60,7 +61,7 @@ class music:
 					self.playing_pointer = self.playing_pointer+1
 					self.playing_pointer = self.playing_pointer % len(self.playlist)
 					self.playing = self.playlist[self.playing_pointer]['name']+ ' ' + self.playlist[self.playing_pointer]['artist']
-					res = u'切换成功，正在播放: ' +self.playlist[self.playing_pointer]['name']
+					res = u'正在播放: ' +self.playlist[self.playing_pointer]['name']
 				else:
 					res = u'当前播放列表为空'
 		elif len(arg_list) == 2:
@@ -74,8 +75,8 @@ class music:
 						res += u'[VIP] '
 					res = res +str(i)+' '+ song_list[i]['name']+' '+song_list[i]['artist'] + '\n';
 					self.tmp_playlist.append(song_list[i])
-				res = res + 'Play <order> to play \nAdd <order> to add in playlist' 
-			elif arg == u'Pl':
+				res = res + u"Play 序号\n添加歌曲到列表：Add 序号"
+			elif arg == u'PL':
 				if self.con.acquire():
 					self.con.notifyAll()
 					self.con.release()
@@ -136,8 +137,9 @@ class music:
 					try:
 						subprocess.Popen(["pkill","mplayer"])
 						time.sleep(1)
-						subprocess.Popen(["mplayer", mp3_url])
+						subprocess.Popen(["mplayer",mp3_url])
 						self.con.notifyAll()
+						# print song['duration']
 						self.con.wait(int(song['duration'])/1000)
 					except:
 						pass
